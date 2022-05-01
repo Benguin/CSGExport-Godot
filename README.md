@@ -1,6 +1,10 @@
 # CSGExport-Godot
-CSG Export Plugin for GodotEngine
+CSG Export Plugin for GodotEngine V4-alpha.
+
 =================================
+
+Ported from https://github.com/mohammedzero43/CSGExport-Godot
+
 Export CSG Meshes with 1 click 
 
 How to use :

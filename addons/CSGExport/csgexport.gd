@@ -1,6 +1,6 @@
 #This script is created by: mohammedzero43 (Xtremezero), please give credits if remixed or shared
 #feel free to report bugs and suggest improvements at mohammedzero43@gmail.com
-tool
+@tool
 extends EditorPlugin
 
 var button_csg = Button.new()
@@ -14,20 +14,21 @@ var fdialog: FileDialog
 
 func _enter_tree():
 	
-	get_editor_interface().get_selection().connect("selection_changed",self,"_selectionchanged")
+	get_editor_interface().get_selection().connect("selection_changed",self._selectionchanged)
 	add_control_to_container(CONTAINER_SPATIAL_EDITOR_MENU,button_csg)
 	button_csg.text = "Export CSGMesh to .obj"
 func _ready():
-	button_csg.connect("pressed",self,"_on_csg_pressed")
+	button_csg.connect("pressed",self._on_csg_pressed)
 func _exit_tree():
 	button_csg.queue_free()
 	remove_control_from_container(CONTAINER_SPATIAL_EDITOR_MENU,button_csg)
 
 func _selectionchanged():
+	prints("addon: SELECTION CHANGED")
 	var selected = get_editor_interface().get_selection().get_selected_nodes()
 	if selected.size() == 1:
 		
-		if selected[0] is CSGCombiner:
+		if selected[0] is CSGCombiner3D:
 			object_name= selected[0].name
 			obj = selected[0]
 			button_csg.visible = true
@@ -38,7 +39,7 @@ func _selectionchanged():
 		
 
 func handles(obj):
-	if obj is CSGCombiner:
+	if obj is CSGCombiner3D:
 		return true
 
 
@@ -53,11 +54,11 @@ func exportcsg():
 	var vertcount=0
 	
 	#OBJ Headers
-	objcont+="mtllib "+object_name+".mtl\n"
-	objcont+="o " + object_name + "\n";#CHANGE WITH SELECTION NAME";
+	objcont+="mtllib "+str(object_name)+".mtl\n"
+	objcont+="o " + str(object_name) + "\n";#CHANGE WITH SELECTION NAME";
 	
 	#Blank material
-	var blank_material = SpatialMaterial.new()
+	var blank_material = StandardMaterial3D.new()
 	blank_material.resource_name = "BlankMaterial"
 	
 	#Get surfaces and mesh info
@@ -66,7 +67,7 @@ func exportcsg():
 		var verts = surface[0]
 		var UVs = surface[4]
 		var normals = surface[1]
-		var mat:SpatialMaterial = csgMesh[-1].surface_get_material(t)
+		var mat:StandardMaterial3D = csgMesh[-1].surface_get_material(t)
 		var faces = []
 		
 		#create_faces_from_verts (Triangles)
@@ -114,26 +115,28 @@ func exportcsg():
 		
 	#Select file destination
 	fdialog = FileDialog.new()
-	fdialog.mode = FileDialog.MODE_OPEN_DIR
+	fdialog.mode = FileDialog.FILE_MODE_OPEN_DIR
 	fdialog.access = FileDialog.ACCESS_RESOURCES
 	##fdialog.add_filter("*.obj; Wavefront File")
 	fdialog.show_hidden_files = false
-	fdialog.window_title = "Export CSGMesh"
-	fdialog.resizable = true
+	fdialog.title = "Export CSGMesh"
+	fdialog.unresizable = false
 	
-	get_editor_interface().get_editor_viewport().add_child(fdialog)
-	fdialog.connect("dir_selected", self, "onFileDialogOK", [])
+	get_editor_interface().get_editor_main_control().add_child(fdialog)
+	fdialog.connect('file_selected', self.onFileDialogOK);
 	fdialog.popup_centered(Vector2(700, 450))
-	
+
+
 func onFileDialogOK(path: String):
+	prints("onFileDialogOK", path);
 	#Write to files
 	var objfile = File.new()
-	objfile.open(path+"/"+object_name+".obj", File.WRITE)
+	objfile.open(path+"/"+str(object_name)+".obj", File.WRITE)
 	objfile.store_string(objcont)
 	objfile.close()
 
 	var mtlfile = File.new()
-	mtlfile.open(path+"/"+object_name+".mtl", File.WRITE)
+	mtlfile.open(path+"/"+str(object_name)+".mtl", File.WRITE)
 	mtlfile.store_string(matcont)
 	mtlfile.close()
 
